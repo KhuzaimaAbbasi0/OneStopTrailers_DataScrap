@@ -8,7 +8,7 @@ driver = Driver(uc=True)
 base_url="https://www.onestoptrailershop.com/search/inventory"
 
 
-fieldnames = ["URL", "Title", "Price", "Sale", "Saving", "PDP_Title", "PDP_Price", "PDP_Sale", "PDP_OldPrice", "PDP_Saving"]
+fieldnames = ["URL", "Title", "Price", "Image", "Sale", "Saving", "PDP_Title", "PDP_Price", "PDP_Sale", "PDP_OldPrice", "PDP_Saving"]
 all_data = []
 PDP_URLs=[]
 All_PLPs=[]
@@ -30,6 +30,9 @@ while True:
         if href:
             plp_data ={}
             plp_data["URL"]=href, PDP_URLs.append(href)
+            Image_Web=card.find_element("css selector", "picture source")
+            plp_data["Image"]=Image_Web.get_attribute("srcset")
+            
             Heading_text=""
             Heading=card.find_elements("css selector",".results-heading span")
             for X in Heading:
@@ -63,15 +66,6 @@ while True:
 
     except:
          break
-    
-
-
-    
-    
-                
-         
-
-
     
 
 while True:
