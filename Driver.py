@@ -8,13 +8,14 @@ driver = Driver(uc=True)
 base_url="https://www.onestoptrailershop.com/search/inventory"
 
 
-fieldnames = ["URL", "Title", "Price", "Sale", "Saving"]
+fieldnames = ["URL", "Title", "Price", "Sale", "Saving", "PDP_Title", "PDP_Price", "PDP_Sale", "PDP_OldPrice", "PDP_Saving"]
 all_data = []
 PDP_URLs=[]
 All_PLPs=[]
 All_PDPs=[]
 # Step 1: Extract URLs and PLP-only data
-driver.uc_open_with_reconnect(base_url, reconnect_time=4)
+driver.get(base_url)
+
 time.sleep(10)
 while True:
    
@@ -53,10 +54,6 @@ while True:
                     fieldnames.append(TitleText)
                 plp_data[TitleText]=Values.text.strip()
         All_PLPs.append(plp_data)
-        with open("trailers.csv", "w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(All_PLPs)
 
 
     try:
@@ -76,20 +73,47 @@ while True:
 
 
     
-      
 
-# while True:
-#         i=0
-#         for Page in PDP_URLs:
-#             human_sleep()
-#             # wait_for_manual_captcha(driver)        
-#             driver.get(Page)
-           
-#             All_PDPs.append(pdp_data)
+while True:
             
-            
+        for Page in PDP_URLs:
+                 
+            driver.get(Page)
+            pdp_data={}
+            pdp_data["PDP_Title"]=driver.find_element("css selector", ".product-title").text.strip()
+            pdp_data["PDP_Price"]=driver.find_element("css selector", ".unitPrice").text.strip()
+          
+            try:
+                Sales_State=driver.find_element("css selector", ".sale-label")
+                pdp_data["PDP_Sale"]=True
+                pdp_data["PDP_OldPrice"]=driver.find_element("css selector", ".old-price").text.strip()
+                pdp_data["PDP_Saving"]=driver.find_element("css selector", ".sale-benefits span").text.strip()
+            except:
+                 pdp_data["PDP_Sale"]=False
+            try:     
+                Add_Btn=driver.find_element("css selector", ".additional-details-btn")
+                Add_Btn.click()
+            except:
+                 pass
+            Table=driver.find_element("css selector",".overview-container")
+            Td_Titles=Table.find_elements("tag name", "strong")
+            Td_Values=Table.find_elements("css selector", ".text-right")
+            for Titles,Values in zip(Td_Titles,Td_Values):
+                TitleText=Titles.text.strip().lower()
+                if ('PDP_'+TitleText) not in fieldnames:
+                    fieldnames.append('PDP_'+TitleText)
+                pdp_data['PDP_'+TitleText]=Values.text.strip()
+            All_PDPs.append(pdp_data)
+        break
+
+
+for plp, pdp in zip(All_PLPs, All_PDPs):
+                    new_data = {**plp, **pdp}
+                    all_data.append(new_data)
+    
+with open("AllTrailers.csv", "w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(all_data)         
         
-#         for plp, pdp in zip(All_PLPs, All_PDPs):
-#             new_data = {**plp, **pdp}
-#             all_data.append(new_data)
-              
+                
