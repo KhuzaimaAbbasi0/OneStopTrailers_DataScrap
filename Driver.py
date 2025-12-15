@@ -8,7 +8,7 @@ driver = Driver(uc=True)
 base_url="https://www.onestoptrailershop.com/search/inventory"
 
 
-fieldnames = ["URL", "Title", "Price", "Image", "Sale", "Saving", "PDP_Title", "PDP_Price", "PDP_Sale", "PDP_OldPrice", "PDP_Saving"]
+fieldnames = ["URL", "Year", "Name", "Brand", "PLP_Price", "Image", "Sale", "Saving", "PDP_Title", "Sale Price", "PDP_Sale", "Price", "PDP_Saving"]
 all_data = []
 PDP_URLs=[]
 All_PLPs=[]
@@ -33,12 +33,13 @@ while True:
             Image_Web=card.find_element("css selector", "picture source")
             plp_data["Image"]=Image_Web.get_attribute("srcset")
             
-            Heading_text=""
-            Heading=card.find_elements("css selector",".results-heading span")
-            for X in Heading:
-                 Heading_text= Heading_text+X.text.strip()
-            plp_data["Title"]=Heading_text
-            plp_data["Price"]=card.find_element("css selector",".price-section span").text.strip()
+            
+            plp_data["Year"] =card.find_element("css selector",".results-heading span[data-model-year]").text.strip()
+            plp_data["Name"] =card.find_element("css selector",".results-heading span[data-model-name]").text.strip()
+            plp_data["Brand"]=card.find_element("css selector",".results-heading span[data-model-brand]").text.strip()
+            
+     
+            plp_data["PLP_Price"]=card.find_element("css selector",".price-section span").text.strip()
             try:
                 Sales_State=card.find_element("css selector", ".on-sale-label")
                 plp_data["Sale"]=True
@@ -75,12 +76,12 @@ while True:
             driver.get(Page)
             pdp_data={}
             pdp_data["PDP_Title"]=driver.find_element("css selector", ".product-title").text.strip()
-            pdp_data["PDP_Price"]=driver.find_element("css selector", ".unitPrice").text.strip()
+            pdp_data["Sale Price"]=driver.find_element("css selector", ".unitPrice").text.strip()
           
             try:
                 Sales_State=driver.find_element("css selector", ".sale-label")
                 pdp_data["PDP_Sale"]=True
-                pdp_data["PDP_OldPrice"]=driver.find_element("css selector", ".old-price").text.strip()
+                pdp_data["Price"]=driver.find_element("css selector", ".old-price").text.strip()
                 pdp_data["PDP_Saving"]=driver.find_element("css selector", ".sale-benefits span").text.strip()
             except:
                  pdp_data["PDP_Sale"]=False
@@ -105,7 +106,7 @@ for plp, pdp in zip(All_PLPs, All_PDPs):
                     new_data = {**plp, **pdp}
                     all_data.append(new_data)
     
-with open("AllTrailers.csv", "w", newline="", encoding="utf-8") as csvfile:
+with open("Complete Trailers.csv", "w", newline="", encoding="utf-8") as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(all_data)         
